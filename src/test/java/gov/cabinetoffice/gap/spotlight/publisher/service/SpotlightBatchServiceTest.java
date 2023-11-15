@@ -93,7 +93,7 @@ class SpotlightBatchServiceTest {
 
                 mockedRestService.when(() -> RestService.sendGetRequest(
                                 mockRestClient,
-                                null,
+                                params,
                                 getEndpoint,
                                 SpotlightBatch.class))
                         .thenReturn(expectedResult);
@@ -103,7 +103,7 @@ class SpotlightBatchServiceTest {
 
                 mockedRestService.verify(() -> RestService.sendGetRequest(
                         mockRestClient,
-                        null,
+                        params,
                         getEndpoint,
                         SpotlightBatch.class));
 
