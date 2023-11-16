@@ -1,5 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.model;
 
+import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,7 @@ public class SpotlightBatch {
 
     private UUID id;
 
-    private String status;
+    private SpotlightBatchStatus status;
 
     private String lastSendAttempt;
     @Builder.Default

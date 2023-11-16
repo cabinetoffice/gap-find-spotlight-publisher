@@ -230,6 +230,7 @@
                         <BACKEND_API_URL>http://localhost:8080/api</BACKEND_API_URL>
                         <LAMBDA_AUTHORIZATION_SECRET>test-api-secret</LAMBDA_AUTHORIZATION_SECRET>
                         <SPOTLIGHT_BATCH_MAX_SIZE>100</SPOTLIGHT_BATCH_MAX_SIZE>
+                        <SPOTLIGHT_BATCH_QUEUE_URL>queue</SPOTLIGHT_BATCH_QUEUE_URL>
                     </environmentVariables>
                 </configuration>
             </plugin>
