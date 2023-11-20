@@ -1,5 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
 import okhttp3.OkHttpClient;
@@ -28,17 +29,17 @@ public class SpotlightBatchService {
         return RestService.sendGetRequest(restClient, params, getEndpoint, Boolean.class);
     }
 
-    public static SpotlightBatch getSpotlightBatchByStatus(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
+    public static SpotlightBatchDto getSpotlightBatchByStatus(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
         final Map<String, String> params = Map.of("batchSizeLimit", SPOTLIGHT_BATCH_MAX_SIZE);
 
         final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + status;
 
         logger.info("Sending get request to {}", getEndpoint)   ;
 
-        return RestService.sendGetRequest(restClient, params, getEndpoint, SpotlightBatch.class);
+        return RestService.sendGetRequest(restClient, params, getEndpoint, SpotlightBatchDto.class);
     }
 
-    public static SpotlightBatch createSpotlightBatch(OkHttpClient restClient) throws Exception {
+    public static SpotlightBatchDto createSpotlightBatch(OkHttpClient restClient) throws Exception {
 
         final String postEndpoint = SPOTLIGHT_BATCH_ENDPOINT;
 
@@ -58,10 +59,10 @@ public class SpotlightBatchService {
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
-    public static SpotlightBatch getAvailableSpotlightBatch() throws Exception {
+    public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
         //check if there is a spotlight_batch in the db (take the latest?? with queued state)
 
-        SpotlightBatch batch;
+        SpotlightBatchDto batch;
 
         //we check if a spotlight_batch with status QUEUED and spotlight_submissions (linked to it )size less than 200 exists
         final Boolean existingBatch = SpotlightBatchService.spotlightBatchWithStatusExist(restClient, SpotlightBatchStatus.QUEUED);

@@ -1,5 +1,7 @@
 package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
@@ -53,8 +55,8 @@ class HandlerTest {
         final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         final UUID spotlightBatchId = UUID.fromString("22222222-2222-2222-2222-222222222222");
         final List<Message> messages = List.of(Message.builder().body(spotlightSubmissionId.toString()).build());
-        final SpotlightSubmission spotlightSubmission = SpotlightSubmission.builder().id(spotlightSubmissionId).build();
-        final SpotlightBatch spotlightBatch = SpotlightBatch.builder().id(spotlightBatchId).build();
+        final SpotlightSubmissionDto spotlightSubmission = SpotlightSubmissionDto.builder().id(spotlightSubmissionId).build();
+        final SpotlightBatchDto spotlightBatch = SpotlightBatchDto.builder().id(spotlightBatchId).build();
 
         sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
         mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);

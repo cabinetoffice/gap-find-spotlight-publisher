@@ -1,5 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Nested;
@@ -86,7 +87,7 @@ class SpotlightBatchServiceTest {
         @Test
         void getSpotlightBatchByStatus() throws Exception {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
-                final SpotlightBatch expectedResult = SpotlightBatch.builder()
+                final SpotlightBatchDto expectedResult = SpotlightBatchDto.builder()
                         .id(spotlightBatchId)
                         .build();
                 final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + QUEUED;
@@ -95,17 +96,17 @@ class SpotlightBatchServiceTest {
                                 mockRestClient,
                                 params,
                                 getEndpoint,
-                                SpotlightBatch.class))
+                                SpotlightBatchDto.class))
                         .thenReturn(expectedResult);
 
-                final SpotlightBatch result = SpotlightBatchService.
+                final SpotlightBatchDto result = SpotlightBatchService.
                         getSpotlightBatchByStatus(mockRestClient, QUEUED);
 
                 mockedRestService.verify(() -> RestService.sendGetRequest(
                         mockRestClient,
                         params,
                         getEndpoint,
-                        SpotlightBatch.class));
+                        SpotlightBatchDto.class));
 
                 assertThat(result).isEqualTo(expectedResult);
             }
@@ -117,7 +118,7 @@ class SpotlightBatchServiceTest {
         @Test
         void testCreateSpotlightBatchSubmissionRow() throws Exception {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
-                final SpotlightBatch spotlightBatch = SpotlightBatch.builder()
+                final SpotlightBatchDto spotlightBatch = SpotlightBatchDto.builder()
                         .id(spotlightBatchId)
                         .build();
 
@@ -129,7 +130,7 @@ class SpotlightBatchServiceTest {
                                 postEndpoint))
                         .thenReturn(spotlightBatch);
 
-                final SpotlightBatch result = SpotlightBatchService.createSpotlightBatch(mockRestClient);
+                final SpotlightBatchDto result = SpotlightBatchService.createSpotlightBatch(mockRestClient);
 
                 mockedRestService.verify(() -> RestService.sendPostRequest(
                         mockRestClient,

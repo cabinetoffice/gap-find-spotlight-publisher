@@ -2,6 +2,8 @@ package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
@@ -42,11 +44,11 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
                 logger.info("Message in the queue has spotlight submission id {}", spotlightSubmissionId);
                 //  from it get the mandatory_question and what else needed
 
-                final SpotlightSubmission spotlightSubmission = SpotlightSubmissionService.getSpotlightSubmissionData(restClient, spotlightSubmissionId);
+                final SpotlightSubmissionDto spotlightSubmission = SpotlightSubmissionService.getSpotlightSubmissionData(restClient, spotlightSubmissionId);
                 logger.info("Spotlight submission with id {} has been retrieved", spotlightSubmissionId);
 
 
-                final SpotlightBatch batch = SpotlightBatchService.getAvailableSpotlightBatch();
+                final SpotlightBatchDto batch = SpotlightBatchService.getAvailableSpotlightBatch();
                 logger.info("Spotlight batch with id {} has been retrieved", batch.getId());
                 // add the spotlight_batch_id and the spotlight_submission_id to the spotlight_batch_submission
 

@@ -1,5 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
@@ -23,23 +24,23 @@ class SpotlightSubmissionServiceTest {
     @Test
     void testGetSpotlightSubmissionData() throws Exception {
         try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
-            SpotlightSubmission expectedSpotlightSubmission = SpotlightSubmission.builder().build();
+            SpotlightSubmissionDto expectedSpotlightSubmission = SpotlightSubmissionDto.builder().build();
 
             mockedRestService.when(() -> RestService.sendGetRequest(
                             mockRestClient,
                             null,
                             "/spotlight-submissions/" + spotlightSubmissionId,
-                            SpotlightSubmission.class))
+                            SpotlightSubmissionDto.class))
                     .thenReturn(expectedSpotlightSubmission);
 
-            final SpotlightSubmission result = SpotlightSubmissionService.
+            final SpotlightSubmissionDto result = SpotlightSubmissionService.
                     getSpotlightSubmissionData(mockRestClient, spotlightSubmissionId);
 
             mockedRestService.verify(() -> RestService.sendGetRequest(
                     mockRestClient,
                     null,
                     "/spotlight-submissions/" + spotlightSubmissionId,
-                    SpotlightSubmission.class));
+                    SpotlightSubmissionDto.class));
 
             assertThat(result).isEqualTo(expectedSpotlightSubmission);
         }
