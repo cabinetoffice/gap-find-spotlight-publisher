@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 class HandlerTest {
-    private static SqsClient sqsClient;
+    private static MockedStatic sqsClient;
     private static MockedStatic<SpotlightSubmissionService> mockedSpotlightSubmissionService;
     private static MockedStatic<SpotlightBatchService> mockedSpotlightBatchService;
     private static MockedStatic<SqsService> mockedSqsService;
@@ -32,7 +32,8 @@ class HandlerTest {
 
     @BeforeAll
     static void beforeAll() {
-        sqsClient = mock(SqsClient.class);
+        sqsClient = mockStatic(SqsClient.class);
+
         mockedSpotlightSubmissionService = mockStatic(SpotlightSubmissionService.class);
         mockedSpotlightBatchService = mockStatic(SpotlightBatchService.class);
         mockedSqsService = mockStatic(SqsService.class);
@@ -55,6 +56,7 @@ class HandlerTest {
         final SpotlightSubmission spotlightSubmission = SpotlightSubmission.builder().id(spotlightSubmissionId).build();
         final SpotlightBatch spotlightBatch = SpotlightBatch.builder().id(spotlightBatchId).build();
 
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
         mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
         mockedSpotlightSubmissionService.when(() -> SpotlightSubmissionService.getSpotlightSubmissionData(any(), any())).thenReturn(spotlightSubmission);
         mockedSpotlightBatchService.when(SpotlightBatchService::getAvailableSpotlightBatch).thenReturn(spotlightBatch);
@@ -69,7 +71,7 @@ class HandlerTest {
 
     @Test
     void ThrowException() {
-
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
         mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenThrow(new RuntimeException());
 
         final Handler handler = new Handler();

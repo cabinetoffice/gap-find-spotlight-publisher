@@ -46,6 +46,7 @@ public class RestService {
                 logger.info("Successfully fetched from {}", endpoint);
                 return gson.fromJson(response.body().string(), clazz);
             } else {
+                logger.info("Error occured while getting  {} with error {}, and body {}", endpoint, response.code(), response.body());
                 throw new RuntimeException();
             }
         }
@@ -58,6 +59,8 @@ public class RestService {
         } else {
             requestBody = RequestBody.create("", JSON);
         }
+        logger.info("Sending post request to {}", endpoint);
+
         return executePost(restClient, requestBody, endpoint);
     }
 
@@ -69,6 +72,7 @@ public class RestService {
                 logger.info("Successfully posted to {}", endpoint);
                 return response.body() != null ? (T) response.body() : null;
             } else {
+                logger.info("Error occured while posting  {} with error {}, and body {}", endpoint, response.code(), response.body());
                 throw new RuntimeException("Error occured while posting to " + endpoint);
             }
         }
@@ -84,13 +88,16 @@ public class RestService {
             requestBody = RequestBody.create("", JSON);
         }
 
+        logger.info("Sending post request to {}", endpoint);
+
         final Request request = defaultRequestBuilder().url(BACKEND_API_URL + endpoint).patch(requestBody).build();
 
         try (Response response = restClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 logger.info("Successfully patched to {}", endpoint);
-            }
-            else {
+            } else {
+                logger.info("Error occured while patching  {} with error {}, and body {}", endpoint, response.code(), response.body());
+
                 throw new RuntimeException("Error occured while patching to " + endpoint);
             }
         }
