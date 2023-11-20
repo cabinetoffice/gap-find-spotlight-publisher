@@ -69,6 +69,7 @@ class HandlerTest {
         mockedSqsService.verify(() -> SqsService.grabMessagesFromQueue(any()));
         mockedSpotlightSubmissionService.verify(() -> SpotlightSubmissionService.getSpotlightSubmissionData(any(), any()));
         mockedSpotlightBatchService.verify(SpotlightBatchService::getAvailableSpotlightBatch);
+        mockedSqsService.verify(() -> SqsService.deleteMessageFromQueue(any(), any()));
     }
 
     @Test

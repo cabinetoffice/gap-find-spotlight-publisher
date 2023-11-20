@@ -3,12 +3,15 @@ package gov.cabinetoffice.gap.spotlight.publisher.service;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageResponse;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -45,65 +48,104 @@ class SqsServiceTest {
         sqsService = new SqsService();
     }
 
-    @Test
-    void grabMessagesFromQueue_Success() {
-        final List<Message> messages1 = createMessages(1, 10);
-        final List<Message> messages2 = createMessages(11, 18);
+    @Nested
+    class grabMessagesFromQueue{
+        @Test
+        void grabMessagesFromQueue_Success() {
+            final List<Message> messages1 = createMessages(1, 10);
+            final List<Message> messages2 = createMessages(11, 18);
 
-        final ReceiveMessageResponse receiveMessageResponse1 = ReceiveMessageResponse.builder()
-                .messages(messages1)
-                .build();
+            final ReceiveMessageResponse receiveMessageResponse1 = ReceiveMessageResponse.builder()
+                    .messages(messages1)
+                    .build();
 
-        final ReceiveMessageResponse receiveMessageResponse2 = ReceiveMessageResponse.builder()
-                .messages(messages2)
-                .build();
+            final ReceiveMessageResponse receiveMessageResponse2 = ReceiveMessageResponse.builder()
+                    .messages(messages2)
+                    .build();
 
-        try (MockedStatic<SqsService> mockedService = mockStatic(SqsService.class)) {
-            when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
-                    .thenReturn(receiveMessageResponse1, receiveMessageResponse2);
+            try (MockedStatic<SqsService> mockedService = mockStatic(SqsService.class)) {
+                when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class)))
+                        .thenReturn(receiveMessageResponse1, receiveMessageResponse2);
 
-            mockedService.when(() -> SqsService.grabMessagesFromQueue(any(SqsClient.class)))
-                    .thenCallRealMethod();
+                mockedService.when(() -> SqsService.grabMessagesFromQueue(any(SqsClient.class)))
+                        .thenCallRealMethod();
 
-            final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
+                final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
 
-            verify(sqsClient, times(2)).receiveMessage(receiveMessageRequestCaptor.capture());
+                verify(sqsClient, times(2)).receiveMessage(receiveMessageRequestCaptor.capture());
 
-            final List<ReceiveMessageRequest> capturedRequests = receiveMessageRequestCaptor.getAllValues();
-            assertEquals(2, capturedRequests.size());
-            assertEquals(18, messages.size());
+                final List<ReceiveMessageRequest> capturedRequests = receiveMessageRequestCaptor.getAllValues();
+                assertEquals(2, capturedRequests.size());
+                assertEquals(18, messages.size());
+            }
+        }
+
+        @Test
+        void grabMessagesFromQueue_EmptyQueue() {
+            final ReceiveMessageResponse emptyResponse = ReceiveMessageResponse.builder().messages(List.of()).build();
+            try (MockedStatic<SqsService> mockedService = mockStatic(SqsService.class)) {
+                when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(emptyResponse);
+
+                mockedService.when(() -> SqsService.grabMessagesFromQueue(any(SqsClient.class)))
+                        .thenCallRealMethod();
+
+                final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
+
+                verify(sqsClient).receiveMessage(receiveMessageRequestCaptor.capture());
+                assertEquals(0, messages.size());
+            }
+        }
+
+        @Test
+        void grabMessagesFromQueue_Exception() {
+            when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenThrow(AwsServiceException.class);
+
+            assertThrows(AwsServiceException.class, () -> SqsService.grabMessagesFromQueue(sqsClient));
+        }
+
+
+        private List<Message> createMessages(int start, int end) {
+            final List<Message> messages = Lists.newArrayList();
+            for (int i = start; i <= end; i++) {
+                messages.add(Message.builder().body("Message " + i).build());
+            }
+            return messages;
         }
     }
 
-    @Test
-    void grabMessagesFromQueue_EmptyQueue() {
-        final ReceiveMessageResponse emptyResponse = ReceiveMessageResponse.builder().messages(List.of()).build();
-        try (MockedStatic<SqsService> mockedService = mockStatic(SqsService.class)) {
-            when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenReturn(emptyResponse);
 
-            mockedService.when(() -> SqsService.grabMessagesFromQueue(any(SqsClient.class)))
-                    .thenCallRealMethod();
+    @Nested
+    class deleteMessageFromQueue {
+        @Test
+        void deleteMessageFromQueue_Success() {
 
-            final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
+            final Message message = Message.builder()
+                    .receiptHandle("receipt-handle-of-the-message-to-delete")
+                    .body("Test message body")
+                    .build();
 
-            verify(sqsClient).receiveMessage(receiveMessageRequestCaptor.capture());
-            assertEquals(0, messages.size());
+            when(sqsClient.deleteMessage(any(DeleteMessageRequest.class)))
+                    .thenReturn(DeleteMessageResponse.builder().build());
+
+            SqsService.deleteMessageFromQueue(sqsClient, message);
+
+
+            final ArgumentCaptor<DeleteMessageRequest> deleteMessageRequestCaptor = ArgumentCaptor.forClass(DeleteMessageRequest.class);
+
+            verify(sqsClient, times(1)).deleteMessage(deleteMessageRequestCaptor.capture());
+
+
+            final DeleteMessageRequest deleteMessageRequest = deleteMessageRequestCaptor.getValue();
+            assertEquals(message.receiptHandle(), deleteMessageRequest.receiptHandle());
+
         }
-    }
 
-    @Test
-    void grabMessagesFromQueue_Exception() {
-        when(sqsClient.receiveMessage(any(ReceiveMessageRequest.class))).thenThrow(AwsServiceException.class);
+        @Test
+        void deleteMessageFromQueue_Exception() {
 
-        assertThrows(AwsServiceException.class, () -> SqsService.grabMessagesFromQueue(sqsClient));
-    }
+            when(sqsClient.deleteMessage(any(DeleteMessageRequest.class))).thenThrow(AwsServiceException.class);
 
-
-    private List<Message> createMessages(int start, int end) {
-        final List<Message> messages = Lists.newArrayList();
-        for (int i = start; i <= end; i++) {
-            messages.add(Message.builder().body("Message " + i).build());
+            assertThrows(AwsServiceException.class, () -> SqsService.deleteMessageFromQueue(sqsClient, Message.builder().build()));
         }
-        return messages;
     }
 }

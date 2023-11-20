@@ -4,8 +4,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightSubmissionService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;
@@ -54,9 +52,16 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
                 SpotlightBatchService.createSpotlightBatchSubmissionRow(restClient, batch.getId(), spotlightSubmissionId);
                 logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, batch.getId());
+
+                //delete the message from the queue
+                SqsService.deleteMessageFromQueue(sqsClient, message);
+
                 //send batch to spotlight
                 //TODO use spotlightSubmission data to send to spotlight
+
             }
+
+
 
 
         } catch (Exception e) {

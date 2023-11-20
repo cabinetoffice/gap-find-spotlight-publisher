@@ -3,6 +3,7 @@ package gov.cabinetoffice.gap.spotlight.publisher.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
@@ -45,5 +46,24 @@ public class SqsService {
             System.exit(1);
         }
         return List.of();
+    }
+
+    public static void deleteMessageFromQueue(SqsClient sqsClient, Message message) {
+
+        try {
+            DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder()
+                    .queueUrl(SPOTLIGHT_BATCH_QUEUE_URL)
+                    .receiptHandle(message.receiptHandle())
+                    .build();
+
+            sqsClient.deleteMessage(deleteMessageRequest);
+           logger.info("Message deleted from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
+
+        } catch (SqsException e) {
+            logger.info("Error deleting messages from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
+            logger.error(e.awsErrorDetails().errorMessage());
+            System.exit(1);
+        }
+
     }
 }
