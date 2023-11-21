@@ -1,26 +1,25 @@
 package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightSubmissionService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 
 class HandlerTest {
     private static MockedStatic sqsClient;
@@ -53,6 +52,18 @@ class HandlerTest {
     }
 
     @Test
+    void handleRequest_Empty_Message_Queue() throws Exception {
+        final List<Message> messages = Collections.emptyList();
+
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
+        mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
+
+        handler.handleRequest(eventBridgeEvent, null);
+
+        verify(handler, never()).createBatches(messages);
+    }
+
+    @Test
     void handleRequest_Success() throws Exception {
         final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         final UUID spotlightBatchId = UUID.fromString("22222222-2222-2222-2222-222222222222");
@@ -72,11 +83,16 @@ class HandlerTest {
     }
 
     @Test
-    void ThrowException() {
-        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
-        mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenThrow(new RuntimeException());
+    void ThrowException() throws Exception {
+        final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        final List<Message> messages = List.of(Message.builder().body(spotlightSubmissionId.toString()).build());
 
-        final Handler handler = new Handler();
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
+        mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
+
+        doThrow(RuntimeException.class)
+                .when(handler).createBatches(messages);
+
         assertThrows(RuntimeException.class, () -> handler.handleRequest(eventBridgeEvent, null));
 
     }
