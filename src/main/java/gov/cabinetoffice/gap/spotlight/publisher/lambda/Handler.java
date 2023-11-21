@@ -24,7 +24,6 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
     @Override
     public Void handleRequest(Map<String, Object> eventBridgeEvent, Context context) {
 
-        //grab the messages from sqs
         final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
 
         if (messages.isEmpty()) {
@@ -49,16 +48,6 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
         return null;
     }
 
-    private int getRemainingSpacesInBatch(SpotlightBatchDto batch) {
-        final int maxSize = Integer.parseInt(SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE);
-
-        if (batch.getSpotlightSubmissions() == null) {
-            return maxSize;
-        }
-
-        return maxSize - batch.getSpotlightSubmissions().size();
-    }
-
     public void createBatches(List<Message> messages) throws Exception {
 
         final SpotlightBatchDto mostRecentBatch = SpotlightBatchService.getAvailableSpotlightBatch();
@@ -66,12 +55,8 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
         for (Message message : messages) {
 
-            SpotlightBatchDto currentBatch;
-            if (getRemainingSpacesInBatch(mostRecentBatch) > 0) {
-                currentBatch = mostRecentBatch;
-            } else {
-                currentBatch = SpotlightBatchService.createSpotlightBatch(restClient);
-            }
+            // the most recent batch in the database may still have spaces in it so lets try to fill that one before creating a new one
+            final SpotlightBatchDto currentBatch = getBatchToAddSubmissions(mostRecentBatch);
 
             final UUID spotlightSubmissionId = UUID.fromString(message.body());
             logger.info("Message in the queue has spotlight submission id {}", spotlightSubmissionId);
@@ -82,5 +67,27 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             // delete from sqs when processed (commented out to make testing easier)
             // SqsService.deleteMessage(sqsClient, message);
         }
+    }
+
+    private int getRemainingSpacesInBatch(SpotlightBatchDto batch) {
+        final int maxSize = Integer.parseInt(SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE);
+
+        if (batch.getSpotlightSubmissions() == null) {
+            return maxSize;
+        }
+
+        return maxSize - batch.getSpotlightSubmissions().size();
+    }
+
+    private SpotlightBatchDto getBatchToAddSubmissions(SpotlightBatchDto mostRecentBatch) throws Exception {
+        SpotlightBatchDto currentBatch;
+
+        if (getRemainingSpacesInBatch(mostRecentBatch) > 0) {
+            currentBatch = mostRecentBatch;
+        } else {
+            currentBatch = SpotlightBatchService.createSpotlightBatch(restClient);
+        }
+
+        return currentBatch;
     }
 }
