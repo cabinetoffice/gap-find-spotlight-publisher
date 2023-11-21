@@ -1,23 +1,24 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
+import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
 import okhttp3.OkHttpClient;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
 import java.util.UUID;
-
-import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class SpotlightBatchServiceTest {
@@ -127,7 +128,8 @@ class SpotlightBatchServiceTest {
                 mockedRestService.when(() -> RestService.sendPostRequest(
                                 mockRestClient,
                                 null,
-                                postEndpoint))
+                                postEndpoint,
+                                SpotlightBatchDto.class))
                         .thenReturn(spotlightBatch);
 
                 final SpotlightBatchDto result = SpotlightBatchService.createSpotlightBatch(mockRestClient);
@@ -135,7 +137,8 @@ class SpotlightBatchServiceTest {
                 mockedRestService.verify(() -> RestService.sendPostRequest(
                         mockRestClient,
                         null,
-                        postEndpoint));
+                        postEndpoint,
+                        SpotlightBatchDto.class));
                 assertThat(result).isEqualTo(spotlightBatch);
 
             }
@@ -160,70 +163,59 @@ class SpotlightBatchServiceTest {
         }
     }
 
-//    @Nested
-//    class getAvailableSpotlightBatch {
-//        @Test
-//        void getAvailableSpotlightBatch_ExistingQueuedBatch() throws Exception {
-//            try (MockedStatic<SpotlightBatchService> mockedService = mockStatic(SpotlightBatchService.class)) {
-//                final SpotlightBatch existingBatch = SpotlightBatch.builder()
-//                        .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
-//                        .status(QUEUED)
-//                        .build();
-//
-//                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED))
-//                        .thenReturn(true);
-//
-//                mockedService.when(() -> SpotlightBatchService.getSpotlightBatchByStatus(mockRestClient, QUEUED))
-//                        .thenReturn(existingBatch);
-//
-//                mockedService.when(SpotlightBatchService::getAvailableSpotlightBatch).thenReturn(existingBatch);
-//
-//                final SpotlightBatch result = SpotlightBatchService.getAvailableSpotlightBatch();
-//
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED)
-//                );
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.getSpotlightBatchByStatus(mockRestClient, QUEUED)
-//                );
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.createSpotlightBatch(mockRestClient), never()
-//                );
-//
-//                assertThat(result).isEqualTo(existingBatch);
-//            }
-//        }
+    @Nested
+    class getAvailableSpotlightBatch {
+        @Test
+        void getAvailableSpotlightBatch_ExistingQueuedBatch() throws Exception {
+            try (MockedStatic<SpotlightBatchService> mockedService = mockStatic(SpotlightBatchService.class)) {
+                final SpotlightBatchDto existingBatch = SpotlightBatchDto.builder()
+                        .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                        .status(QUEUED)
+                        .build();
 
-//        @Test
-//        void getAvailableSpotlightBatch_NonExistingQueuedBatch() throws Exception {
-//            try (MockedStatic<SpotlightBatchService> mockedService = mockStatic(SpotlightBatchService.class)) {
-//                SpotlightBatch createdBatch = SpotlightBatch.builder()
-//                        .id(UUID.fromString("00000000-0000-0000-0000-000000000002"))
-//                        .status(SUCCESS)
-//                        .build();
-//
-//                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED))
-//                        .thenReturn(false);
-//
-//                mockedService.when(() -> SpotlightBatchService.createSpotlightBatch(mockRestClient))
-//                        .thenReturn(createdBatch);
-//
-//                SpotlightBatch result = SpotlightBatchService.getAvailableSpotlightBatch();
-//
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED)
-//                );
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.getSpotlightBatchByStatus(mockRestClient, QUEUED), never()
-//                );
-//                mockedService.verify(() ->
-//                        SpotlightBatchService.createSpotlightBatch(mockRestClient)
-//                );
-//
-//                assertThat(result).isEqualTo(createdBatch);
-//            }
-////        }
-//    }
+                mockedService.when(() -> SpotlightBatchService.getSpotlightBatchByStatus(any(), eq(QUEUED)))
+                        .thenReturn(existingBatch);
+
+                mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
+                        .thenCallRealMethod();
+
+                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                        .thenReturn(Boolean.TRUE);
+
+                final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();
+
+                assertThat(result).isEqualTo(existingBatch);
+                mockedService.verify(() -> SpotlightBatchService.createSpotlightBatch(any()), never());
+            }
+        }
+
+        @Test
+        void getAvailableSpotlightBatch_NoExistingBatch() throws Exception {
+            try (MockedStatic<SpotlightBatchService> mockedService = mockStatic(SpotlightBatchService.class)) {
+                final SpotlightBatchDto newBatch = SpotlightBatchDto.builder()
+                        .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
+                        .status(QUEUED)
+                        .build();
+
+                mockedService.when(() -> SpotlightBatchService.getSpotlightBatchByStatus(any(), eq(QUEUED)))
+                        .thenReturn(null);
+
+                mockedService.when(() -> SpotlightBatchService.createSpotlightBatch(any()))
+                        .thenReturn(newBatch);
+
+                mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
+                        .thenCallRealMethod();
+
+                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                        .thenReturn(Boolean.FALSE);
+
+                final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();
+
+                assertThat(result).isEqualTo(newBatch);
+                mockedService.verify(() -> SpotlightBatchService.createSpotlightBatch(any()));
+            }
+        }
+    }
 }
 
 

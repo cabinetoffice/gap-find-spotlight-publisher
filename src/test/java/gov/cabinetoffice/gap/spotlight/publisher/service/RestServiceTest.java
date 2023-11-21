@@ -159,9 +159,13 @@ public class RestServiceTest {
         void shouldSuccessfullyCompletePostRequestWithDTOBody() throws Exception {
             final Call mockCall = mock(Call.class);
             final Response mockResponse = mock(Response.class);
+            final ResponseBody mockResponseBody = mock(ResponseBody.class);
+
             when(mockedHttpClient.newCall(any())).thenReturn(mockCall);
             when(mockCall.execute()).thenReturn(mockResponse);
             when(mockResponse.isSuccessful()).thenReturn(true);
+            when(mockResponse.body()).thenReturn(mockResponseBody);
+            when(mockResponseBody.string()).thenReturn("{ \"id\":" + uuid + " }");
 
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
 
@@ -170,12 +174,12 @@ public class RestServiceTest {
                         .build();
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString(), any())).thenCallRealMethod();
                 mockedRestService
-                        .when(() -> RestService.sendPostRequest(any(), any(SpotlightBatch.class), anyString()))
+                        .when(() -> RestService.sendPostRequest(any(), any(SpotlightBatch.class), anyString(), any()))
                         .thenCallRealMethod();
 
-                RestService.sendPostRequest(mockedHttpClient, body, "/test/url");
+                RestService.sendPostRequest(mockedHttpClient, body, "/test/url", SpotlightBatch.class);
 
                 verify(mockedHttpClient).newCall(httpRequestCaptor.capture());
                 final Request capturedRequest = httpRequestCaptor.getValue();
@@ -194,19 +198,23 @@ public class RestServiceTest {
         void shouldSuccessfullyCompletePostRequestWithNoBody() throws Exception {
             final Call mockCall = mock(Call.class);
             final Response mockResponse = mock(Response.class);
+            final ResponseBody mockResponseBody = mock(ResponseBody.class);
+
             when(mockedHttpClient.newCall(any())).thenReturn(mockCall);
             when(mockCall.execute()).thenReturn(mockResponse);
             when(mockResponse.isSuccessful()).thenReturn(true);
+            when(mockResponse.body()).thenReturn(mockResponseBody);
+            when(mockResponseBody.string()).thenReturn(null);
 
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString(), any())).thenCallRealMethod();
                 mockedRestService
-                        .when(() -> RestService.sendPostRequest(any(), any(), anyString()))
+                        .when(() -> RestService.sendPostRequest(any(), any(), anyString(), any()))
                         .thenCallRealMethod();
 
-                RestService.sendPostRequest(mockedHttpClient, null, "/test/url");
+                RestService.sendPostRequest(mockedHttpClient, null, "/test/url", null);
 
                 verify(mockedHttpClient).newCall(httpRequestCaptor.capture());
                 final Request capturedRequest = httpRequestCaptor.getValue();
@@ -232,13 +240,14 @@ public class RestServiceTest {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString())).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.sendPostRequest(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString(), any())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.sendPostRequest(any(), any(), anyString(), any())).thenCallRealMethod();
 
                 assertThrows(RuntimeException.class, () -> RestService.sendPostRequest(
                         mockedHttpClient,
                         "MockBodyValue",
-                        "/test/url"));
+                        "/test/url",
+                        String.class));
 
             }
         }
@@ -290,7 +299,7 @@ public class RestServiceTest {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.executePost(any(), any(), anyString(), any())).thenCallRealMethod();
                 mockedRestService
                         .when(() -> RestService.sendPatchRequest(any(), any(), anyString()))
                         .thenCallRealMethod();

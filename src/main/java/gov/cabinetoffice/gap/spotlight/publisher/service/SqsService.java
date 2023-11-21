@@ -3,16 +3,17 @@ package gov.cabinetoffice.gap.spotlight.publisher.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SqsException;
+import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SqsService {
+
+    private SqsService() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(SqsService.class);
     private static final String SPOTLIGHT_BATCH_QUEUE_URL = System.getenv("SPOTLIGHT_BATCH_QUEUE_URL");
 
@@ -49,7 +50,6 @@ public class SqsService {
     }
 
     public static void deleteMessageFromQueue(SqsClient sqsClient, Message message) {
-
         try {
             DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder()
                     .queueUrl(SPOTLIGHT_BATCH_QUEUE_URL)
@@ -57,13 +57,11 @@ public class SqsService {
                     .build();
 
             sqsClient.deleteMessage(deleteMessageRequest);
-           logger.info("Message deleted from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
+            logger.info("Message deleted from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
 
         } catch (SqsException e) {
             logger.info("Error deleting messages from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
             logger.error(e.awsErrorDetails().errorMessage());
-            System.exit(1);
         }
-
     }
 }
