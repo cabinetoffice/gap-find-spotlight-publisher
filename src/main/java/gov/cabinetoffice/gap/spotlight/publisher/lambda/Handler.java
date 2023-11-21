@@ -38,8 +38,6 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
             // step 2: send information to spotlight and process responses
 
-
-
         } catch (Exception e) {
             logger.error("Could not process message ", e);
             throw new RuntimeException(e);
@@ -49,7 +47,6 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
     }
 
     public void createBatches(List<Message> messages) throws Exception {
-
         final SpotlightBatchDto mostRecentBatch = SpotlightBatchService.getAvailableSpotlightBatch();
         logger.info("Spotlight batch with id {} has been retrieved", mostRecentBatch.getId());
 
