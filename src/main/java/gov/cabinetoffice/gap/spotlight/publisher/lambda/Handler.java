@@ -62,7 +62,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, currentBatch.getId());
 
             // delete from sqs when processed (commented out to make testing easier)
-            // SqsService.deleteMessage(sqsClient, message);
+            SqsService.deleteMessageFromQueue(sqsClient, message);
         }
     }
 

@@ -166,7 +166,7 @@ class HandlerTest {
         handler.createBatches(messages);
 
         mockedSpotlightBatchService.verify(() -> SpotlightBatchService.createSpotlightBatchSubmissionRow(Mockito.any(), Mockito.eq(existingBatch.getId()), Mockito.eq(spotlightSubmissionId)));
-        //mockedSqsService.verify(() -> SqsService.deleteMessage(Mockito.any(), Mockito.eq(messages.get(0))));
+        mockedSqsService.verify(() -> SqsService.deleteMessageFromQueue(Mockito.any(), Mockito.eq(messages.get(0))));
     }
 
     private SpotlightBatchDto createFullBatch() {
