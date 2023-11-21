@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SqsService {
+
+    private SqsService() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(SqsService.class);
     private static final String SPOTLIGHT_BATCH_QUEUE_URL = System.getenv("SPOTLIGHT_BATCH_QUEUE_URL");
 
@@ -44,12 +49,19 @@ public class SqsService {
         return List.of();
     }
 
-    public static void deleteMessage(SqsClient sqsClient, Message message) {
-        final DeleteMessageRequest deletionRequest = DeleteMessageRequest.builder()
-                .queueUrl(SPOTLIGHT_BATCH_QUEUE_URL)
-                .receiptHandle(message.receiptHandle())
-                .build();
+    public static void deleteMessageFromQueue(SqsClient sqsClient, Message message) {
+        try {
+            DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder()
+                    .queueUrl(SPOTLIGHT_BATCH_QUEUE_URL)
+                    .receiptHandle(message.receiptHandle())
+                    .build();
 
-        sqsClient.deleteMessage(deletionRequest);
+            sqsClient.deleteMessage(deleteMessageRequest);
+            logger.info("Message deleted from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
+
+        } catch (SqsException e) {
+            logger.info("Error deleting messages from queue with receipt handle {} for spotlight submission id {}", message.receiptHandle(), message.body());
+            logger.error(e.awsErrorDetails().errorMessage());
+        }
     }
 }

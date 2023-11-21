@@ -1,7 +1,10 @@
 package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
+import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
+import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightSubmissionService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;
@@ -16,10 +19,9 @@ import static org.mockito.Mockito.*;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class HandlerTest {
     private static MockedStatic sqsClient;
@@ -64,7 +66,7 @@ class HandlerTest {
     }
 
     @Test
-    void handleRequest_Success() throws Exception {
+    void handleRequest_BatchWithEmptySpotlightSubmissions() throws Exception {
         final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         final UUID spotlightBatchId = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
@@ -80,6 +82,55 @@ class HandlerTest {
         mockedSqsService.verify(() -> SqsService.grabMessagesFromQueue(any()));
         mockedSpotlightBatchService.verify(SpotlightBatchService::getAvailableSpotlightBatch);
         verify(handler).createBatches(messages);
+    }
+
+    @Test
+    void handleRequest_BatchWithNotEmptySpotlightSubmissions() throws Exception {
+        final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+        final UUID spotlightBatchId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+        final List<Message> messages = List.of(Message.builder().body(spotlightSubmissionId.toString()).build());
+
+        final SpotlightSubmissionDto spotlightSubmission = SpotlightSubmissionDto.builder().build();
+
+        final SpotlightBatchDto spotlightBatch = SpotlightBatchDto.builder()
+                .id(spotlightBatchId)
+                .spotlightSubmissions(new ArrayList<>(List.of(spotlightSubmission)))
+                .build();
+
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
+        mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
+        mockedSpotlightBatchService.when(SpotlightBatchService::getAvailableSpotlightBatch).thenReturn(spotlightBatch);
+
+        handler.handleRequest(eventBridgeEvent, null);
+
+        mockedSqsService.verify(() -> SqsService.grabMessagesFromQueue(any()));
+        mockedSpotlightBatchService.verify(SpotlightBatchService::getAvailableSpotlightBatch);
+        verify(handler).createBatches(messages);
+    }
+
+    @Test
+    void handleRequest_CreatesNewBatch_IfCurrentBatchIsFull() throws Exception {
+        final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+        final List<Message> messages = List.of(Message.builder().body(spotlightSubmissionId.toString()).build());
+
+        final SpotlightBatchDto spotlightBatch = createFullBatch();
+        final SpotlightBatchDto emptyBatch = SpotlightBatchDto.builder()
+                .id(UUID.randomUUID())
+                .build();
+
+        sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
+        mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
+        mockedSpotlightBatchService.when(SpotlightBatchService::getAvailableSpotlightBatch).thenReturn(spotlightBatch);
+        mockedSpotlightBatchService.when(() -> SpotlightBatchService.createSpotlightBatch(any())).thenReturn(emptyBatch);
+
+        handler.handleRequest(eventBridgeEvent, null);
+
+        mockedSqsService.verify(() -> SqsService.grabMessagesFromQueue(any()));
+        mockedSpotlightBatchService.verify(SpotlightBatchService::getAvailableSpotlightBatch);
+        verify(handler).createBatches(messages);
+        mockedSpotlightBatchService.verify(() -> SpotlightBatchService.createSpotlightBatch(any()));
     }
 
     @Test
@@ -116,5 +167,17 @@ class HandlerTest {
 
         mockedSpotlightBatchService.verify(() -> SpotlightBatchService.createSpotlightBatchSubmissionRow(Mockito.any(), Mockito.eq(existingBatch.getId()), Mockito.eq(spotlightSubmissionId)));
         //mockedSqsService.verify(() -> SqsService.deleteMessage(Mockito.any(), Mockito.eq(messages.get(0))));
+    }
+
+    private SpotlightBatchDto createFullBatch() {
+        final List<SpotlightSubmissionDto> submissions = IntStream.range(0, 100)
+                .mapToObj(i -> SpotlightSubmissionDto.builder()
+                        .id(UUID.randomUUID())
+                        .build())
+                .collect(Collectors.toList());
+
+        return SpotlightBatchDto.builder()
+                .spotlightSubmissions(submissions)
+                .build();
     }
 }
