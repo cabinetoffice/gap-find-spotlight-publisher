@@ -1,7 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

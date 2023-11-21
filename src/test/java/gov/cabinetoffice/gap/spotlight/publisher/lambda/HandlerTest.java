@@ -3,8 +3,6 @@ package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightBatch;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightSubmissionService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;

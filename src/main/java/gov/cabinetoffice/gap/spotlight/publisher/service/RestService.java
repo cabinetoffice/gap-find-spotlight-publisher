@@ -52,7 +52,7 @@ public class RestService {
         }
     }
 
-    public static <T> T sendPostRequest(OkHttpClient restClient, T requestBodyDto, String endpoint) throws Exception {
+    public static <T> T sendPostRequest(OkHttpClient restClient, T requestBodyDto, String endpoint, Class<T> clazz) throws Exception {
         RequestBody requestBody;
         if (requestBodyDto != null) {
             requestBody = RequestBody.create(gson.toJson(requestBodyDto), JSON);
@@ -61,16 +61,25 @@ public class RestService {
         }
         logger.info("Sending post request to {}", endpoint);
 
-        return executePost(restClient, requestBody, endpoint);
+        return executePost(restClient, requestBody, endpoint, clazz);
     }
 
-    public static <T> T executePost(OkHttpClient restClient, RequestBody body, String endpoint) throws Exception {
+    public static <T> T executePost(OkHttpClient restClient, RequestBody body, String endpoint, Class<T> clazz) throws Exception {
         final Request request = defaultRequestBuilder().url(BACKEND_API_URL + endpoint).post(body).build();
 
         try (Response response = restClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 logger.info("Successfully posted to {}", endpoint);
-                return response.body() != null ? (T) response.body() : null;
+
+                // you can only make one call to body.string before the stream is closed so don't refactor this out...
+                final String bodyString = response.body().string();
+                logger.info("body " + bodyString);
+
+                if (bodyString == null) {
+                    return null;
+                }
+
+                return gson.fromJson(bodyString, clazz);
             } else {
                 logger.info("Error occured while posting  {} with error {}, and body {}", endpoint, response.code(), response.body());
                 throw new RuntimeException("Error occured while posting to " + endpoint);

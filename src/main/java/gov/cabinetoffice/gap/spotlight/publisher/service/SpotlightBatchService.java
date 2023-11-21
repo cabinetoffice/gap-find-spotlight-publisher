@@ -42,7 +42,7 @@ public class SpotlightBatchService {
 
         logger.info("Sending post request to {}", postEndpoint);
 
-        return RestService.sendPostRequest(restClient, null, postEndpoint);
+        return RestService.sendPostRequest(restClient, null, postEndpoint, SpotlightBatchDto.class);
     }
 
     public static void createSpotlightBatchSubmissionRow(OkHttpClient restClient, UUID spotlightBatchId, UUID spotlightSubmissionId) throws Exception {
