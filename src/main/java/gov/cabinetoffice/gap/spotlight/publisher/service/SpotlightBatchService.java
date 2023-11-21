@@ -51,17 +51,16 @@ public class SpotlightBatchService {
 
         logger.info("Sending patch request to {}", patchEndpoint);
 
-
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
-        final SpotlightBatchDto existingBatch = getSpotlightBatchByStatus(restClient, SpotlightBatchStatus.QUEUED);
+        final Boolean existingBatch = SpotlightBatchService.spotlightBatchWithStatusExist(restClient, SpotlightBatchStatus.QUEUED);
 
-        if (existingBatch != null) {
-            return existingBatch;
+        if (existingBatch.equals(Boolean.FALSE)) {
+            return SpotlightBatchService.createSpotlightBatch(restClient);
         }
 
-        return createSpotlightBatch(restClient);
+        return SpotlightBatchService.getSpotlightBatchByStatus(restClient, SpotlightBatchStatus.QUEUED);
     }
 }

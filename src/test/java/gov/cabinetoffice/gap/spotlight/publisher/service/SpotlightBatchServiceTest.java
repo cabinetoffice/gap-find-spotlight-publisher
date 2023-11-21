@@ -179,6 +179,9 @@ class SpotlightBatchServiceTest {
                 mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
                         .thenCallRealMethod();
 
+                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                        .thenReturn(Boolean.TRUE);
+
                 final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();
 
                 assertThat(result).isEqualTo(existingBatch);
@@ -202,6 +205,9 @@ class SpotlightBatchServiceTest {
 
                 mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
                         .thenCallRealMethod();
+
+                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                        .thenReturn(Boolean.FALSE);
 
                 final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();
 
