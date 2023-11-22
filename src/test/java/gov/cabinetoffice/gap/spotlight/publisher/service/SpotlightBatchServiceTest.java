@@ -45,7 +45,7 @@ class SpotlightBatchServiceTest {
                                 Boolean.class))
                         .thenReturn(expectedResult);
 
-                final Boolean result = SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED);
+                final Boolean result = SpotlightBatchService.existsByStatus(mockRestClient, QUEUED);
 
                 mockedRestService.verify(() -> RestService.sendGetRequest(
                         mockRestClient,
@@ -70,7 +70,7 @@ class SpotlightBatchServiceTest {
                                 Boolean.class))
                         .thenReturn(expectedResult);
 
-                final Boolean result = SpotlightBatchService.spotlightBatchWithStatusExist(mockRestClient, QUEUED);
+                final Boolean result = SpotlightBatchService.existsByStatus(mockRestClient, QUEUED);
 
                 mockedRestService.verify(() -> RestService.sendGetRequest(
                         mockRestClient,
@@ -179,7 +179,7 @@ class SpotlightBatchServiceTest {
                 mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
                         .thenCallRealMethod();
 
-                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                mockedService.when(() -> SpotlightBatchService.existsByStatus(any(), eq(QUEUED)))
                         .thenReturn(Boolean.TRUE);
 
                 final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();
@@ -206,7 +206,7 @@ class SpotlightBatchServiceTest {
                 mockedService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
                         .thenCallRealMethod();
 
-                mockedService.when(() -> SpotlightBatchService.spotlightBatchWithStatusExist(any(), eq(QUEUED)))
+                mockedService.when(() -> SpotlightBatchService.existsByStatus(any(), eq(QUEUED)))
                         .thenReturn(Boolean.FALSE);
 
                 final SpotlightBatchDto result = SpotlightBatchService.getAvailableSpotlightBatch();

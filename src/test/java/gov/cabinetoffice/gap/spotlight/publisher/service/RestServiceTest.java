@@ -315,7 +315,6 @@ public class RestServiceTest {
                 assertThat(capturedRequest.method()).isEqualTo("PATCH");
                 assertThat(capturedRequest.url()).hasToString("http://localhost:8080/api/test/url");
                 assertThat(bufferToReadBody.readUtf8()).isEqualTo("");
-
             }
         }
 

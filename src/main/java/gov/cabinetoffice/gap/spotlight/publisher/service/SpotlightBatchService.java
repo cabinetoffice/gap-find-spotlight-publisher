@@ -6,6 +6,8 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,7 +18,7 @@ public class SpotlightBatchService {
 
     private static final OkHttpClient restClient = new OkHttpClient();
 
-    public static Boolean spotlightBatchWithStatusExist(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
+    public static Boolean existsByStatus(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
         final Map<String, String> params = Map.of("batchSizeLimit", SPOTLIGHT_BATCH_MAX_SIZE);
 
         final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + status + "/exists";
@@ -55,12 +57,16 @@ public class SpotlightBatchService {
     }
 
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
-        final Boolean existingBatch = SpotlightBatchService.spotlightBatchWithStatusExist(restClient, SpotlightBatchStatus.QUEUED);
+        final Boolean batchExists = SpotlightBatchService.existsByStatus(restClient, SpotlightBatchStatus.QUEUED);
 
-        if (existingBatch.equals(Boolean.FALSE)) {
+        if (batchExists.equals(Boolean.FALSE)) {
             return SpotlightBatchService.createSpotlightBatch(restClient);
         }
 
         return SpotlightBatchService.getSpotlightBatchByStatus(restClient, SpotlightBatchStatus.QUEUED);
+    }
+
+    public List<SpotlightBatchDto> getBatchesToProcess(OkHttpClient restClient) {
+        return Collections.emptyList();
     }
 }

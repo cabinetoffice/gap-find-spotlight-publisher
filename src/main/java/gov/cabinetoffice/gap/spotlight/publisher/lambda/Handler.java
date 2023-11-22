@@ -37,6 +37,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             createBatches(messages);
 
             // step 2: send information to spotlight and process responses
+            sendBatchesToSpotlight();
 
         } catch (Exception e) {
             logger.error("Could not process message ", e);
@@ -44,6 +45,18 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
         }
 
         return null;
+    }
+
+    public void sendBatchesToSpotlight() {
+        // fetch all batches with a status of QUEUED
+
+        // loop round them
+
+        // create a DTO to send to spotlight for the batch
+
+        // for each set of MQs add an entry to the DTO containing the MQ information in a format tht matches Iain's designs
+
+        // once all MQs have been added, send to spotlight
     }
 
     public void createBatches(List<Message> messages) throws Exception {
