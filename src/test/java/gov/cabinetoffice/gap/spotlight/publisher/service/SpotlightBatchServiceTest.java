@@ -1,24 +1,26 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
 import okhttp3.OkHttpClient;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class SpotlightBatchServiceTest {
@@ -162,6 +164,40 @@ class SpotlightBatchServiceTest {
             }
         }
     }
+
+    @Nested
+    class getBatchesToProcess {
+        @Test
+        void getBatchesToProcess() throws Exception {
+            try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
+                final SpotlightBatchDto spotlightBatchDto = SpotlightBatchDto.builder()
+                        .id(spotlightBatchId)
+                        .build();
+                final List<SpotlightBatchDto> expectedResult = List.of(spotlightBatchDto);
+
+                final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + QUEUED + "/all";
+
+                mockedRestService.when(() -> RestService.sendGetRequest(
+                                mockRestClient,
+                                null,
+                                getEndpoint,
+                                List.class))
+                        .thenReturn(expectedResult);
+
+                final List<SpotlightBatchDto> result = SpotlightBatchService.
+                        getBatchesToProcess(mockRestClient, QUEUED);
+
+                mockedRestService.verify(() -> RestService.sendGetRequest(
+                        mockRestClient,
+                        null,
+                        getEndpoint,
+                        List.class));
+
+                assertThat(result).isEqualTo(expectedResult);
+            }
+        }
+    }
+
 
     @Nested
     class getAvailableSpotlightBatch {
