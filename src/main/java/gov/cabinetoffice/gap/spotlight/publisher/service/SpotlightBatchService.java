@@ -1,5 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.SendToSpotlightDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import okhttp3.OkHttpClient;
@@ -55,9 +56,9 @@ public class SpotlightBatchService {
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
-    public static List<SpotlightBatchDto> getBatchesToProcess(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
+    public static List<SendToSpotlightDto> getBatchesToSendToSpotlight(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
 
-        final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + status + "/all";
+        final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + status + "/generate-data-for-spotlight";
 
         logger.info("Sending get request to {}", getEndpoint);
 

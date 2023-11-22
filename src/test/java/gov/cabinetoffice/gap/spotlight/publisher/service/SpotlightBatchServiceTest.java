@@ -1,5 +1,8 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
+import gov.cabinetoffice.gap.spotlight.publisher.dto.DraftAssessmentDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.SendToSpotlightDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.SpotlightSchemeDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Nested;
@@ -166,26 +169,48 @@ class SpotlightBatchServiceTest {
     }
 
     @Nested
-    class getBatchesToProcess {
+    class getBatchesToSendToSpotlight {
         @Test
-        void getBatchesToProcess() throws Exception {
+        void getBatchesToSendToSpotlight() throws Exception {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
-                final SpotlightBatchDto spotlightBatchDto = SpotlightBatchDto.builder()
-                        .id(spotlightBatchId)
-                        .build();
-                final List<SpotlightBatchDto> expectedResult = List.of(spotlightBatchDto);
+                final DraftAssessmentDto draftAssessmentDto = DraftAssessmentDto.builder()
+                        .addressLine1("address1")
+                        .ggisSchemeId("id1").build();
 
-                final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + QUEUED + "/all";
+                final DraftAssessmentDto draftAssessmentDto2 = DraftAssessmentDto.builder()
+                        .addressLine1("address2")
+                        .ggisSchemeId("id2").build();
+
+                final DraftAssessmentDto draftAssessmentDto3 = DraftAssessmentDto.builder()
+                        .addressLine1("address3")
+                        .ggisSchemeId("id1")
+                        .build();
+
+                final SpotlightSchemeDto spotlightSchemeDto = SpotlightSchemeDto.builder().ggisSchemeId("id1")
+                        .draftAssessments(List.of(draftAssessmentDto, draftAssessmentDto3))
+                        .build();
+
+                final SpotlightSchemeDto spotlightSchemeDto2 = SpotlightSchemeDto.builder().ggisSchemeId("id2")
+                        .draftAssessments(List.of(draftAssessmentDto2))
+                        .build();
+
+                final SendToSpotlightDto sendToSpotlightDto = SendToSpotlightDto.builder()
+                        .schemes(List.of(spotlightSchemeDto2, spotlightSchemeDto))
+                        .build();
+
+                final List<SendToSpotlightDto> sendToSpotlightDtos = List.of(sendToSpotlightDto);
+
+                final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + QUEUED + "/generate-data-for-spotlight";
 
                 mockedRestService.when(() -> RestService.sendGetRequest(
                                 mockRestClient,
                                 null,
                                 getEndpoint,
                                 List.class))
-                        .thenReturn(expectedResult);
+                        .thenReturn(sendToSpotlightDtos);
 
-                final List<SpotlightBatchDto> result = SpotlightBatchService.
-                        getBatchesToProcess(mockRestClient, QUEUED);
+                final List<SendToSpotlightDto> result = SpotlightBatchService.
+                        getBatchesToSendToSpotlight(mockRestClient, QUEUED);
 
                 mockedRestService.verify(() -> RestService.sendGetRequest(
                         mockRestClient,
@@ -193,7 +218,7 @@ class SpotlightBatchServiceTest {
                         getEndpoint,
                         List.class));
 
-                assertThat(result).isEqualTo(expectedResult);
+                assertThat(result).isEqualTo(sendToSpotlightDtos);
             }
         }
     }
