@@ -1,4 +1,4 @@
-package gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions;
+package gov.cabinetoffice.gap.spotlight.publisher.dto.submission;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

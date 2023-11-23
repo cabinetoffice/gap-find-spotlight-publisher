@@ -314,11 +314,12 @@ public class RestServiceTest {
 
                 assertThat(capturedRequest.method()).isEqualTo("PATCH");
                 assertThat(capturedRequest.url()).hasToString("http://localhost:8080/api/test/url");
-                assertThat(bufferToReadBody.readUtf8()).isEqualTo("");
+                assertThat(bufferToReadBody.readUtf8()).isEmpty();
 
             }
         }
 
+        @Test
         void shouldThrowRuntimeExceptionWhenRequestIsUnsuccessful() throws Exception {
             final Call mockCall = mock(Call.class);
             final Response mockResponse = mock(Response.class);

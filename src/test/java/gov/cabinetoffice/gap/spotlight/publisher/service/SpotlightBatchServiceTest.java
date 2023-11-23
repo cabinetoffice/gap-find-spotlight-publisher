@@ -1,6 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
 import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
 import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
 import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;

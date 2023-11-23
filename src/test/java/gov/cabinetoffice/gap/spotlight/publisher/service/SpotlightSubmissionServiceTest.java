@@ -1,7 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
-import gov.cabinetoffice.gap.spotlight.publisher.model.SpotlightSubmission;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.submission.SpotlightSubmissionDto;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

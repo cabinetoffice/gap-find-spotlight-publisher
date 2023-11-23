@@ -1,6 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;

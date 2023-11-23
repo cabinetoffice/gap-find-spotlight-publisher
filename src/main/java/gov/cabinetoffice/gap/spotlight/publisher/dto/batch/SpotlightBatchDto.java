@@ -1,7 +1,7 @@
-package gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch;
+package gov.cabinetoffice.gap.spotlight.publisher.dto.batch;
 
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.submission.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

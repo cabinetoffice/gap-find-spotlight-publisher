@@ -1,4 +1,4 @@
-package gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions;
+package gov.cabinetoffice.gap.spotlight.publisher.dto.submission;
 
 
 import gov.cabinetoffice.gap.spotlight.publisher.model.SchemeEntity;

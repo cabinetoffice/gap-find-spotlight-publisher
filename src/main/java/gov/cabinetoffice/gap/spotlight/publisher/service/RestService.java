@@ -3,6 +3,7 @@ package gov.cabinetoffice.gap.spotlight.publisher.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import gov.cabinetoffice.gap.spotlight.publisher.exceptions.SpotlightPublisherHttpException;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -17,6 +18,11 @@ import java.time.OffsetDateTime;
 import java.util.Map;
 
 public class RestService {
+
+    private RestService() {
+        throw new IllegalStateException("Utility class");
+    }
+
 
     public static final String BACKEND_API_URL = System.getenv("BACKEND_API_URL");
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
@@ -46,8 +52,8 @@ public class RestService {
                 logger.info("Successfully fetched from {}", endpoint);
                 return gson.fromJson(response.body().string(), clazz);
             } else {
-                logger.info("Error occured while getting  {} with error {}, and body {}", endpoint, response.code(), response.body());
-                throw new RuntimeException();
+                logger.info("Error occurred while getting  {} with error {}, and body {}", endpoint, response.code(), response.body());
+                throw new SpotlightPublisherHttpException();
             }
         }
     }
@@ -73,7 +79,7 @@ public class RestService {
 
                 // you can only make one call to body.string before the stream is closed so don't refactor this out...
                 final String bodyString = response.body().string();
-                logger.info("body " + bodyString);
+                logger.info("body {}", bodyString);
 
                 if (bodyString == null) {
                     return null;
@@ -81,8 +87,8 @@ public class RestService {
 
                 return gson.fromJson(bodyString, clazz);
             } else {
-                logger.info("Error occured while posting  {} with error {}, and body {}", endpoint, response.code(), response.body());
-                throw new RuntimeException("Error occured while posting to " + endpoint);
+                logger.info("Error occurred while posting  {} with error {}, and body {}", endpoint, response.code(), response.body());
+                throw new SpotlightPublisherHttpException("Error occurred while posting to " + endpoint);
             }
         }
     }
@@ -105,9 +111,9 @@ public class RestService {
             if (response.isSuccessful()) {
                 logger.info("Successfully patched to {}", endpoint);
             } else {
-                logger.info("Error occured while patching  {} with error {}, and body {}", endpoint, response.code(), response.body());
+                logger.info("Error occurred while patching  {} with error {}, and body {}", endpoint, response.code(), response.body());
 
-                throw new RuntimeException("Error occured while patching to " + endpoint);
+                throw new SpotlightPublisherHttpException("Error occurred while patching to " + endpoint);
             }
         }
     }
