@@ -1,13 +1,11 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.SendToSpotlightDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,15 +54,13 @@ public class SpotlightBatchService {
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
-    public static List<SendToSpotlightDto> getBatchesToSendToSpotlight(OkHttpClient restClient, SpotlightBatchStatus status) throws Exception {
+    public static void sendBatchesToSpotlight(OkHttpClient restClient) throws Exception {
 
-        final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + status + "/generate-data-for-spotlight";
+        final String postEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/send-to-spotlight";
 
-        logger.info("Sending get request to {}", getEndpoint);
+        logger.info("Sending post request to {}", postEndpoint);
 
-        return RestService.sendGetRequest(restClient, null, getEndpoint, List.class);
-
-
+        RestService.sendPostRequest(restClient, null, postEndpoint, null);
     }
 
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
@@ -76,6 +72,4 @@ public class SpotlightBatchService {
 
         return SpotlightBatchService.getSpotlightBatchByStatus(restClient, SpotlightBatchStatus.QUEUED);
     }
-
-
 }

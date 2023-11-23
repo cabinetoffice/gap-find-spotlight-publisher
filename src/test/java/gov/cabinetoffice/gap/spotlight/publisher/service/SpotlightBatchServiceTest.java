@@ -1,29 +1,24 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.DraftAssessmentDto;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.SendToSpotlightDto;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.SpotlightSchemeDto;
 import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import okhttp3.OkHttpClient;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
 import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
 import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
+import okhttp3.OkHttpClient;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Map;
+import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class SpotlightBatchServiceTest {
@@ -169,56 +164,19 @@ class SpotlightBatchServiceTest {
     }
 
     @Nested
-    class getBatchesToSendToSpotlight {
+    class sendBatchesToSpotlight {
+
         @Test
-        void getBatchesToSendToSpotlight() throws Exception {
+        void sendsBatchesSuccessfully() throws Exception {
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
-                final DraftAssessmentDto draftAssessmentDto = DraftAssessmentDto.builder()
-                        .addressLine1("address1")
-                        .ggisSchemeId("id1").build();
 
-                final DraftAssessmentDto draftAssessmentDto2 = DraftAssessmentDto.builder()
-                        .addressLine1("address2")
-                        .ggisSchemeId("id2").build();
+                final String patchEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/send-to-spotlight";
 
-                final DraftAssessmentDto draftAssessmentDto3 = DraftAssessmentDto.builder()
-                        .addressLine1("address3")
-                        .ggisSchemeId("id1")
-                        .build();
+                SpotlightBatchService.sendBatchesToSpotlight(mockRestClient);
 
-                final SpotlightSchemeDto spotlightSchemeDto = SpotlightSchemeDto.builder().ggisSchemeId("id1")
-                        .draftAssessments(List.of(draftAssessmentDto, draftAssessmentDto3))
-                        .build();
-
-                final SpotlightSchemeDto spotlightSchemeDto2 = SpotlightSchemeDto.builder().ggisSchemeId("id2")
-                        .draftAssessments(List.of(draftAssessmentDto2))
-                        .build();
-
-                final SendToSpotlightDto sendToSpotlightDto = SendToSpotlightDto.builder()
-                        .schemes(List.of(spotlightSchemeDto2, spotlightSchemeDto))
-                        .build();
-
-                final List<SendToSpotlightDto> sendToSpotlightDtos = List.of(sendToSpotlightDto);
-
-                final String getEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/status/" + QUEUED + "/generate-data-for-spotlight";
-
-                mockedRestService.when(() -> RestService.sendGetRequest(
-                                mockRestClient,
-                                null,
-                                getEndpoint,
-                                List.class))
-                        .thenReturn(sendToSpotlightDtos);
-
-                final List<SendToSpotlightDto> result = SpotlightBatchService.
-                        getBatchesToSendToSpotlight(mockRestClient, QUEUED);
-
-                mockedRestService.verify(() -> RestService.sendGetRequest(
-                        mockRestClient,
-                        null,
-                        getEndpoint,
-                        List.class));
-
-                assertThat(result).isEqualTo(sendToSpotlightDtos);
+                mockedRestService.verify(() ->
+                        RestService.sendPostRequest(mockRestClient, null, patchEndpoint, null)
+                );
             }
         }
     }

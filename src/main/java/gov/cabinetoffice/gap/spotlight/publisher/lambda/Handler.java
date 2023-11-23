@@ -50,20 +50,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
     }
 
     public void sendBatchesToSpotlight() throws Exception {
-
-        final List<SendToSpotlightDto> batches = SpotlightBatchService.getBatchesToSendToSpotlight(restClient, SpotlightBatchStatus.QUEUED);
-
-        if(batches.isEmpty()) {
-            logger.info("No batches to process");
-            return;
-        }
-        for (SendToSpotlightDto batch : batches) {
-            logger.info("Batch has been retrieved");
-            // send to spotlight
-
-
-        }
-
+        SpotlightBatchService.sendBatchesToSpotlight(restClient);
     }
 
     public void createBatches(List<Message> messages) throws Exception {
