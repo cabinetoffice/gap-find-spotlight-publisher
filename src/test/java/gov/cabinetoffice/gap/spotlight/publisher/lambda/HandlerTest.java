@@ -140,7 +140,7 @@ class HandlerTest {
         sqsClient.when(SqsClient::create).thenReturn(mock(SqsClient.class));
         mockedSqsService.when(() -> SqsService.grabMessagesFromQueue(any())).thenReturn(messages);
 
-        doThrow(RuntimeException.class)
+        doThrow(SpotlightPublisherException.class)
                 .when(handler).createBatches(messages);
 
         assertThrows(SpotlightPublisherException.class, () -> handler.handleRequest(eventBridgeEvent, null));

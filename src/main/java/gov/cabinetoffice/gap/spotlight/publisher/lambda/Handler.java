@@ -2,9 +2,8 @@ package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.SendToSpotlightDto;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.exceptions.SpotlightPublisherException;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;
 import okhttp3.OkHttpClient;
@@ -44,7 +43,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
         } catch (Exception e) {
             logger.error("Could not process message ", e);
-            throw new RuntimeException(e);
+            throw new SpotlightPublisherException(e);
         }
 
         return null;
@@ -70,9 +69,9 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, currentBatch.getId());
 
             // delete from sqs when processed (commented out to make testing easier)
-            if(!TESTING){
+            if (!TESTING) {
                 SqsService.deleteMessageFromQueue(sqsClient, message);
-            };
+            }
         }
     }
 

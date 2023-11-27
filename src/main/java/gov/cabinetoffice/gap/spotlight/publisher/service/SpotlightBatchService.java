@@ -54,8 +54,17 @@ public class SpotlightBatchService {
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
+    public static void sendBatchesToSpotlight(OkHttpClient restClient) throws Exception {
+
+        final String postEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/send-to-spotlight";
+
+        logger.info("Sending post request to {}", postEndpoint);
+
+        RestService.sendPostRequest(restClient, null, postEndpoint, null);
+    }
+
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
-        final Boolean existingBatch = SpotlightBatchService.spotlightBatchWithStatusExist(restClient, SpotlightBatchStatus.QUEUED);
+        final Boolean existingBatch = SpotlightBatchService.existsByStatus(restClient, SpotlightBatchStatus.QUEUED);
 
         if (existingBatch.equals(Boolean.FALSE)) {
             return SpotlightBatchService.createSpotlightBatch(restClient);
