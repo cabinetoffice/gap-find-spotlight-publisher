@@ -1,6 +1,6 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class SpotlightBatchService {
-    public static final String SPOTLIGHT_BATCH_MAX_SIZE = System.getenv("SPOTLIGHT_BATCH_MAX_SIZE");
     static final String SPOTLIGHT_BATCH_ENDPOINT = "/spotlight-batch";
+    public static final String SPOTLIGHT_BATCH_MAX_SIZE = System.getenv("SPOTLIGHT_BATCH_MAX_SIZE");
     private static final Logger logger = LoggerFactory.getLogger(SpotlightBatchService.class);
 
     private static final OkHttpClient restClient = new OkHttpClient();
@@ -54,19 +54,10 @@ public class SpotlightBatchService {
         RestService.sendPatchRequest(restClient, null, patchEndpoint);
     }
 
-    public static void sendBatchesToSpotlight(OkHttpClient restClient) throws Exception {
-
-        final String postEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/send-to-spotlight";
-
-        logger.info("Sending post request to {}", postEndpoint);
-
-        RestService.sendPostRequest(restClient, null, postEndpoint, null);
-    }
-
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {
-        final Boolean batchExists = SpotlightBatchService.existsByStatus(restClient, SpotlightBatchStatus.QUEUED);
+        final Boolean existingBatch = SpotlightBatchService.spotlightBatchWithStatusExist(restClient, SpotlightBatchStatus.QUEUED);
 
-        if (batchExists.equals(Boolean.FALSE)) {
+        if (existingBatch.equals(Boolean.FALSE)) {
             return SpotlightBatchService.createSpotlightBatch(restClient);
         }
 

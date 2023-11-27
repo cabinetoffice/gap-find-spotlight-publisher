@@ -20,6 +20,7 @@ import java.util.UUID;
 public class Handler implements RequestHandler<Map<String, Object>, Void> {
     private static final Logger logger = LoggerFactory.getLogger(Handler.class);
     private static final OkHttpClient restClient = new OkHttpClient();
+    public static final boolean TESTING = Boolean.parseBoolean(System.getenv("TESTING"));
 
     private final SqsClient sqsClient = SqsClient.create();
 
@@ -69,7 +70,9 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, currentBatch.getId());
 
             // delete from sqs when processed (commented out to make testing easier)
-            SqsService.deleteMessageFromQueue(sqsClient, message);
+            if(!TESTING){
+                SqsService.deleteMessageFromQueue(sqsClient, message);
+            };
         }
     }
 

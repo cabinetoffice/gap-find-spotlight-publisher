@@ -1,8 +1,9 @@
 package gov.cabinetoffice.gap.spotlight.publisher.lambda;
 
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightBatch.SpotlightBatchDto;
-import gov.cabinetoffice.gap.spotlight.publisher.dto.spotlightSubmissions.SpotlightSubmissionDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
+import gov.cabinetoffice.gap.spotlight.publisher.dto.submission.SpotlightSubmissionDto;
 import gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus;
+import gov.cabinetoffice.gap.spotlight.publisher.exceptions.SpotlightPublisherException;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightSubmissionService;
 import gov.cabinetoffice.gap.spotlight.publisher.service.SqsService;
@@ -142,7 +143,7 @@ class HandlerTest {
         doThrow(RuntimeException.class)
                 .when(handler).createBatches(messages);
 
-        assertThrows(RuntimeException.class, () -> handler.handleRequest(eventBridgeEvent, null));
+        assertThrows(SpotlightPublisherException.class, () -> handler.handleRequest(eventBridgeEvent, null));
 
     }
 
