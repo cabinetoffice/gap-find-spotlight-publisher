@@ -90,6 +90,9 @@ public class RestService {
                 logger.info("Error occurred while posting  {} with error {}, and body {}", endpoint, response.code(), response.body());
                 throw new SpotlightPublisherHttpException("Error occurred while posting to " + endpoint);
             }
+        } catch (Exception e) {
+            logger.error("Error occurred", e);
+            throw e;
         }
     }
 

@@ -60,7 +60,7 @@ public class SpotlightBatchService {
 
         logger.info("Sending post request to {}", postEndpoint);
 
-        RestService.sendPostRequest(restClient, null, postEndpoint, null);
+        RestService.sendPostRequest(restClient, null, postEndpoint, String.class);
     }
 
     public static SpotlightBatchDto getAvailableSpotlightBatch() throws Exception {

@@ -175,7 +175,7 @@ class SpotlightBatchServiceTest {
                 SpotlightBatchService.sendBatchesToSpotlight(mockRestClient);
 
                 mockedRestService.verify(() ->
-                        RestService.sendPostRequest(mockRestClient, null, patchEndpoint, null)
+                        RestService.sendPostRequest(mockRestClient, null, patchEndpoint, String.class)
                 );
             }
         }
