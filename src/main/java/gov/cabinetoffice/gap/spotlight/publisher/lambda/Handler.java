@@ -39,6 +39,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             createBatches(messages);
 
             // step 2: send information to spotlight and process responses
+            sendBatchesToSpotlight();
 
         } catch (Exception e) {
             logger.error("Could not process message ", e);
@@ -46,6 +47,10 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
         }
 
         return null;
+    }
+
+    public void sendBatchesToSpotlight() throws Exception {
+        SpotlightBatchService.sendBatchesToSpotlight(restClient);
     }
 
     public void createBatches(List<Message> messages) throws Exception {
@@ -64,9 +69,9 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, currentBatch.getId());
 
             // delete from sqs when processed (commented out to make testing easier)
-            if(!TESTING){
-            SqsService.deleteMessageFromQueue(sqsClient, message);
-            };
+            if (!TESTING) {
+                SqsService.deleteMessageFromQueue(sqsClient, message);
+            }
         }
     }
 
