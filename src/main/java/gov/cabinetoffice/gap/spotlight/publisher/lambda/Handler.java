@@ -61,6 +61,7 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
             // the most recent batch in the database may still have spaces in it so lets try to fill that one before creating a new one
             final SpotlightBatchDto currentBatch = getBatchToAddSubmissions(mostRecentBatch);
+            logger.info("latest batch: {}", currentBatch.getId());
 
             final UUID spotlightSubmissionId = UUID.fromString(message.body());
             logger.info("Message in the queue has spotlight submission id {}", spotlightSubmissionId);
@@ -77,11 +78,14 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
     private int getRemainingSpacesInBatch(SpotlightBatchDto batch) {
         final int maxSize = Integer.parseInt(SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE);
+        logger.info("batch max size: " + maxSize);
 
         if (batch.getSpotlightSubmissions() == null) {
+            logger.info("Batch is empty");
             return maxSize;
         }
 
+        logger.info("remaining spaces in batch: " + (maxSize - batch.getSpotlightSubmissions().size()));
         return maxSize - batch.getSpotlightSubmissions().size();
     }
 
