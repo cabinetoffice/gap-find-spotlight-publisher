@@ -168,6 +168,32 @@ class HandlerTest {
         mockedSqsService.verify(() -> SqsService.deleteMessageFromQueue(Mockito.any(), Mockito.eq(messages.get(0))));
     }
 
+    @Test
+    void createBatches_HandlesFullBatch() throws Exception {
+        final SpotlightBatchDto existingBatch = createFullBatch();
+        existingBatch.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        existingBatch.setStatus(SpotlightBatchStatus.QUEUED);
+
+        final SpotlightBatchDto newBatch = SpotlightBatchDto.builder()
+                .id(UUID.randomUUID())
+                .build();
+
+        final UUID spotlightSubmissionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+        final List<Message> messages = List.of(Message.builder().body(spotlightSubmissionId.toString()).build());
+
+        mockedSpotlightBatchService.when(() -> SpotlightBatchService.getAvailableSpotlightBatch())
+                .thenReturn(existingBatch);
+
+        mockedSpotlightBatchService.when(() -> SpotlightBatchService.createSpotlightBatch(any()))
+                        .thenReturn(newBatch);
+
+        handler.createBatches(messages);
+
+        mockedSpotlightBatchService.verify(() -> SpotlightBatchService.createSpotlightBatchSubmissionRow(Mockito.any(), Mockito.eq(newBatch.getId()), Mockito.eq(spotlightSubmissionId)));
+        mockedSqsService.verify(() -> SqsService.deleteMessageFromQueue(Mockito.any(), Mockito.eq(messages.get(0))));
+    }
+
     private SpotlightBatchDto createFullBatch() {
         final List<SpotlightSubmissionDto> submissions = IntStream.range(0, 100)
                 .mapToObj(i -> SpotlightSubmissionDto.builder()
