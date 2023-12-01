@@ -1,24 +1,25 @@
 package gov.cabinetoffice.gap.spotlight.publisher.service;
 
 import gov.cabinetoffice.gap.spotlight.publisher.dto.batch.SpotlightBatchDto;
-import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
-import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
 import okhttp3.OkHttpClient;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
 import java.util.UUID;
+
+import static gov.cabinetoffice.gap.spotlight.publisher.enums.SpotlightBatchStatus.QUEUED;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_ENDPOINT;
+import static gov.cabinetoffice.gap.spotlight.publisher.service.SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class SpotlightBatchServiceTest {
@@ -156,7 +157,7 @@ class SpotlightBatchServiceTest {
                 SpotlightBatchService.createSpotlightBatchSubmissionRow(mockRestClient, spotlightBatchId, spotlightSubmissionId);
 
                 mockedRestService.verify(() ->
-                        RestService.sendPatchRequest(mockRestClient, null, patchEndpoint)
+                        RestService.sendPatchRequest(mockRestClient, null, patchEndpoint, SpotlightBatchDto.class)
                 );
 
             }

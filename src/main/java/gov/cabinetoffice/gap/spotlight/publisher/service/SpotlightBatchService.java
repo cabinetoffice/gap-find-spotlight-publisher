@@ -45,13 +45,13 @@ public class SpotlightBatchService {
         return RestService.sendPostRequest(restClient, null, postEndpoint, SpotlightBatchDto.class);
     }
 
-    public static void createSpotlightBatchSubmissionRow(OkHttpClient restClient, UUID spotlightBatchId, UUID spotlightSubmissionId) throws Exception {
+    public static SpotlightBatchDto createSpotlightBatchSubmissionRow(OkHttpClient restClient, UUID spotlightBatchId, UUID spotlightSubmissionId) throws Exception {
 
         final String patchEndpoint = SPOTLIGHT_BATCH_ENDPOINT + "/" + spotlightBatchId + "/add-spotlight-submission/" + spotlightSubmissionId;
 
         logger.info("Sending patch request to {}", patchEndpoint);
 
-        RestService.sendPatchRequest(restClient, null, patchEndpoint);
+        return RestService.sendPatchRequest(restClient, null, patchEndpoint, SpotlightBatchDto.class);
     }
 
     public static void sendBatchesToSpotlight(OkHttpClient restClient) throws Exception {

@@ -258,22 +258,26 @@ public class RestServiceTest {
 
         @Test
         void shouldSuccessfullyCompletePatchRequest() throws Exception {
-
             final Call mockCall = mock(Call.class);
             final Response mockResponse = mock(Response.class);
+            final ResponseBody mockResponseBody = mock(ResponseBody.class);
+
             when(mockedHttpClient.newCall(any())).thenReturn(mockCall);
             when(mockCall.execute()).thenReturn(mockResponse);
             when(mockResponse.isSuccessful()).thenReturn(true);
+            when(mockResponse.body()).thenReturn(mockResponseBody);
+            when(mockResponseBody.string()).thenReturn("{ \"id\":" + uuid + " }");
 
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
+
                 final  SpotlightBatch body = SpotlightBatch.builder()
                         .id(uuid)
                         .build();
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.sendPatchRequest(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.sendPatchRequest(any(), any(), anyString(), any())).thenCallRealMethod();
 
-                RestService.sendPatchRequest(mockedHttpClient, body, "/test/url");
+                RestService.sendPatchRequest(mockedHttpClient, body, "/test/url", SpotlightBatch.class);
 
                 verify(mockedHttpClient).newCall(httpRequestCaptor.capture());
                 final Request capturedRequest = httpRequestCaptor.getValue();
@@ -292,19 +296,23 @@ public class RestServiceTest {
         void shouldSuccessfullyCompletePatchRequestWithNoBody() throws Exception {
             final Call mockCall = mock(Call.class);
             final Response mockResponse = mock(Response.class);
+            final ResponseBody mockResponseBody = mock(ResponseBody.class);
+
             when(mockedHttpClient.newCall(any())).thenReturn(mockCall);
             when(mockCall.execute()).thenReturn(mockResponse);
             when(mockResponse.isSuccessful()).thenReturn(true);
+            when(mockResponse.body()).thenReturn(mockResponseBody);
+            when(mockResponseBody.string()).thenReturn(null);
 
             try (MockedStatic<RestService> mockedRestService = mockStatic(RestService.class)) {
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
                 mockedRestService.when(() -> RestService.executePost(any(), any(), anyString(), any())).thenCallRealMethod();
                 mockedRestService
-                        .when(() -> RestService.sendPatchRequest(any(), any(), anyString()))
+                        .when(() -> RestService.sendPatchRequest(any(), any(), anyString(), any()))
                         .thenCallRealMethod();
 
-                RestService.sendPatchRequest(mockedHttpClient, null, "/test/url");
+                RestService.sendPatchRequest(mockedHttpClient, null, "/test/url", SpotlightBatch.class);
 
                 verify(mockedHttpClient).newCall(httpRequestCaptor.capture());
                 final Request capturedRequest = httpRequestCaptor.getValue();
@@ -332,9 +340,9 @@ public class RestServiceTest {
                 final SpotlightBatch body = SpotlightBatch.builder().id(uuid).build();
 
                 mockedRestService.when(() -> RestService.defaultRequestBuilder()).thenCallRealMethod();
-                mockedRestService.when(() -> RestService.sendPatchRequest(any(), any(), anyString())).thenCallRealMethod();
+                mockedRestService.when(() -> RestService.sendPatchRequest(any(), any(), anyString(), any())).thenCallRealMethod();
 
-                assertThrows(RuntimeException.class, () -> RestService.sendPatchRequest(mockedHttpClient, body, "/test/url"));
+                assertThrows(RuntimeException.class, () -> RestService.sendPatchRequest(mockedHttpClient, body, "/test/url", SpotlightBatch.class));
             }
         }
 
