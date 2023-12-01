@@ -19,22 +19,18 @@ import java.util.Map;
 
 public class RestService {
 
-    private RestService() {
-        throw new IllegalStateException("Utility class");
-    }
-
-
     public static final String BACKEND_API_URL = System.getenv("BACKEND_API_URL");
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
     public static final Gson gson = new GsonBuilder().registerTypeAdapter(Instant.class,
                     (JsonDeserializer<Instant>) (json, type, jsonDeserializationContext) -> OffsetDateTime
                             .parse(json.getAsJsonPrimitive().getAsString()).toInstant())
             .create();
-
     private static final Logger logger = LoggerFactory.getLogger(RestService.class);
-
     private static final String LAMBDA_AUTHORIZATION_SECRET = System.getenv("LAMBDA_AUTHORIZATION_SECRET");
+
+    private RestService() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static <T> T sendGetRequest(OkHttpClient restClient, Map<String, String> params, String endpoint, Class<T> clazz) throws Exception {
 
@@ -97,7 +93,7 @@ public class RestService {
     }
 
 
-    public static <T> void sendPatchRequest(OkHttpClient restClient, T requestBodyDTO, String endpoint) throws Exception {
+    public static <T> T sendPatchRequest(OkHttpClient restClient, T requestBodyDTO, String endpoint, Class<T> clazz) throws Exception {
 
         RequestBody requestBody;
         if (requestBodyDTO != null) {
@@ -106,18 +102,31 @@ public class RestService {
             requestBody = RequestBody.create("", JSON);
         }
 
-        logger.info("Sending post request to {}", endpoint);
+        logger.info("Sending patch request to {}", endpoint);
 
         final Request request = defaultRequestBuilder().url(BACKEND_API_URL + endpoint).patch(requestBody).build();
 
         try (Response response = restClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 logger.info("Successfully patched to {}", endpoint);
+
+                // you can only make one call to body.string before the stream is closed so don't refactor this out...
+                final String bodyString = response.body().string();
+                logger.info("body {}", bodyString);
+
+                if (bodyString == null) {
+                    return null;
+                }
+
+                return gson.fromJson(bodyString, clazz);
             } else {
                 logger.info("Error occurred while patching  {} with error {}, and body {}", endpoint, response.code(), response.body());
 
                 throw new SpotlightPublisherHttpException("Error occurred while patching to " + endpoint);
             }
+        } catch (Exception e) {
+            logger.error("Error occurred", e);
+            throw e;
         }
     }
 

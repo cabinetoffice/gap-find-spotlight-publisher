@@ -17,10 +17,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Handler implements RequestHandler<Map<String, Object>, Void> {
+    public static final boolean TESTING = Boolean.parseBoolean(System.getenv("TESTING"));
     private static final Logger logger = LoggerFactory.getLogger(Handler.class);
     private static final OkHttpClient restClient = new OkHttpClient();
-    public static final boolean TESTING = Boolean.parseBoolean(System.getenv("TESTING"));
-
     private final SqsClient sqsClient = SqsClient.create();
 
     @Override
@@ -54,19 +53,18 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
     }
 
     public void createBatches(List<Message> messages) throws Exception {
-        final SpotlightBatchDto mostRecentBatch = SpotlightBatchService.getAvailableSpotlightBatch();
+
+        SpotlightBatchDto mostRecentBatch = SpotlightBatchService.getAvailableSpotlightBatch();
         logger.info("Spotlight batch with id {} has been retrieved", mostRecentBatch.getId());
 
         for (Message message : messages) {
-
-            // the most recent batch in the database may still have spaces in it so lets try to fill that one before creating a new one
             final SpotlightBatchDto currentBatch = getBatchToAddSubmissions(mostRecentBatch);
             logger.info("latest batch: {}", currentBatch.getId());
 
             final UUID spotlightSubmissionId = UUID.fromString(message.body());
             logger.info("Message in the queue has spotlight submission id {}", spotlightSubmissionId);
 
-            SpotlightBatchService.createSpotlightBatchSubmissionRow(restClient, currentBatch.getId(), spotlightSubmissionId);
+            mostRecentBatch = SpotlightBatchService.createSpotlightBatchSubmissionRow(restClient, currentBatch.getId(), spotlightSubmissionId);
             logger.info("spotlight submission with id {} has been added to spotlight batch with id {}", spotlightSubmissionId, currentBatch.getId());
 
             // delete from sqs when processed (commented out to make testing easier)
@@ -78,14 +76,14 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
 
     private int getRemainingSpacesInBatch(SpotlightBatchDto batch) {
         final int maxSize = Integer.parseInt(SpotlightBatchService.SPOTLIGHT_BATCH_MAX_SIZE);
-        logger.info("batch max size: " + maxSize);
+        logger.info("batch max size: {}", maxSize);
 
         if (batch.getSpotlightSubmissions() == null) {
             logger.info("Batch is empty");
             return maxSize;
         }
 
-        logger.info("remaining spaces in batch: " + (maxSize - batch.getSpotlightSubmissions().size()));
+        logger.info("remaining spaces in batch: {} ", (maxSize - batch.getSpotlightSubmissions().size()));
         return maxSize - batch.getSpotlightSubmissions().size();
     }
 
