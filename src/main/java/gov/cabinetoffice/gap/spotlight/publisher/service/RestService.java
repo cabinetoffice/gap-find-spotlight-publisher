@@ -13,8 +13,14 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 public class RestService {
@@ -27,6 +33,8 @@ public class RestService {
             .create();
     private static final Logger logger = LoggerFactory.getLogger(RestService.class);
     private static final String LAMBDA_AUTHORIZATION_SECRET = System.getenv("LAMBDA_AUTHORIZATION_SECRET");
+    private static final String PUBLIC_KEY = System.getenv("PUBLIC_KEY");
+
 
     private RestService() {
         throw new IllegalStateException("Utility class");
@@ -131,10 +139,32 @@ public class RestService {
     }
 
     /**
-     * Adds LAMBDA_AUTHORIZATION_SECRET as an Authorization header to every outbound REST call
+     * Adds encrypted LAMBDA_AUTHORIZATION_SECRET as an Authorization header to every outbound REST call
      */
     public static Request.Builder defaultRequestBuilder() {
-        return new Request.Builder().addHeader("Authorization", LAMBDA_AUTHORIZATION_SECRET);
+        final String encryptedSecret = encrypt(LAMBDA_AUTHORIZATION_SECRET, PUBLIC_KEY);
+        logger.info("Secret successfully encrypted");
+
+        return new Request.Builder().addHeader("Authorization", encryptedSecret);
     }
+
+    public static String encrypt(String secret, String publicKey) {
+
+        try {
+            final byte[] publicKeyBytes = Base64.getDecoder().decode(publicKey);
+            final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
+            final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            final PublicKey rsaPublicKey = keyFactory.generatePublic(keySpec);
+            final Cipher encryptCipher = Cipher.getInstance("RSA");
+
+            encryptCipher.init(Cipher.ENCRYPT_MODE, rsaPublicKey);
+            final byte[] cipherText = encryptCipher.doFinal(secret.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(cipherText);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while encrypting the secret " + e);
+        }
+    }
+
 
 }

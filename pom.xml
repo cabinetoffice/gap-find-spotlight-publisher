@@ -208,6 +208,7 @@
                         <LAMBDA_AUTHORIZATION_SECRET>test-api-secret</LAMBDA_AUTHORIZATION_SECRET>
                         <SPOTLIGHT_BATCH_MAX_SIZE>100</SPOTLIGHT_BATCH_MAX_SIZE>
                         <SPOTLIGHT_BATCH_QUEUE_URL>queue</SPOTLIGHT_BATCH_QUEUE_URL>
+                        <PUBLIC_KEY>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1Cg0wsx+v3KKqn9sveTVifxX60m09u96wq00/Ip/gg3g2h5pvpB0sDooC+aOVXIuJGO9f6aiwEqfT8Jkm21rs05ytIa99GmbGBC1a9Tb+JROiK0FG8tqQ2ol3Xfz6ygXlxm83eSTZmpmKi5/AfY5d0n7XXuuqRoYpmkq9jEyxnxN9maCvFQN5gBxlEbfc1mdwfe3for5E/1E7uuFc3M7MqyH/UbZZdMayJItNDU6F7eYF99mD8xh19WWLU9mhlaX2UqYJ8DriWTkSHqRPGgeY7Kr8tuIBgYutJ2BUl1tZsVUSe1R2aDiz5Il9vAS3sbJeAiGE7wFMCYRBst0MTk1kQIDAQAB</PUBLIC_KEY>
                     </environmentVariables>
                 </configuration>
             </plugin>
