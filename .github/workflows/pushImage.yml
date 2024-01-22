@@ -52,6 +52,9 @@ jobs:
 
   imageBuild:
     needs: build
+    permissions:
+        id-token: write
+        contents: read
 
     environment: AWS
     runs-on: ubuntu-latest
