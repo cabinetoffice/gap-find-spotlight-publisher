@@ -25,6 +25,15 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
     @Override
     public Void handleRequest(Map<String, Object> eventBridgeEvent, Context context) {
 
+        // Always try to send existing QUEUED batches first (if any)
+        try {
+            sendBatchesToSpotlight();
+            logger.info("Successfully sent existing batches to Spotlight");
+        } catch (Exception e) {
+            logger.error("Error sending existing batches to Spotlight", e);
+            // Continue anyway - don't fail the whole invocation
+        }
+
         final List<Message> messages = SqsService.grabMessagesFromQueue(sqsClient);
 
         if (messages.isEmpty()) {
@@ -33,15 +42,25 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
         }
 
         try {
+            // Limit messages to avoid timeout during processing
+            final int MAX_MESSAGES_PER_INVOCATION = 500;
+            final List<Message> messagesToProcess = messages.size() > MAX_MESSAGES_PER_INVOCATION
+                    ? messages.subList(0, MAX_MESSAGES_PER_INVOCATION)
+                    : messages;
 
-            /// step 1: create batches to process
-            createBatches(messages);
+            if (messages.size() > MAX_MESSAGES_PER_INVOCATION) {
+                logger.info("Limiting processing to {} of {} messages to avoid timeout",
+                        MAX_MESSAGES_PER_INVOCATION, messages.size());
+            }
 
-            // step 2: send information to spotlight and process responses
+            // Step 1: create batches to process
+            createBatches(messagesToProcess);
+
+            // Step 2: send information to spotlight and process responses (after creating new batches)
             sendBatchesToSpotlight();
 
         } catch (Exception e) {
-            logger.error("Could not process message ", e);
+            logger.error("Could not process messages", e);
             throw new SpotlightPublisherException(e);
         }
 
