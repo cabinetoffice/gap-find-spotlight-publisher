@@ -12,14 +12,24 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Handler implements RequestHandler<Map<String, Object>, Void> {
     public static final boolean TESTING = Boolean.parseBoolean(System.getenv("TESTING"));
     private static final Logger logger = LoggerFactory.getLogger(Handler.class);
-    private static final OkHttpClient restClient = new OkHttpClient();
+    
+    // Configure OkHttpClient with longer timeouts for batch operations
+    // Lambda timeout is 15 minutes, so set HTTP client to 10 minutes to allow buffer
+    private static final OkHttpClient restClient = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.MINUTES)  // Long timeout for batch sending
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build();
+    
     private final SqsClient sqsClient = SqsClient.create();
 
     @Override
@@ -29,6 +39,9 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
         try {
             sendBatchesToSpotlight();
             logger.info("Successfully sent existing batches to Spotlight");
+        } catch (SocketTimeoutException e) {
+            logger.warn("Timeout sending batches to Spotlight - backend may still be processing. Will retry next invocation.");
+            // Don't fail - batches will be retried next time
         } catch (Exception e) {
             logger.error("Error sending existing batches to Spotlight", e);
             // Continue anyway - don't fail the whole invocation
@@ -57,7 +70,15 @@ public class Handler implements RequestHandler<Map<String, Object>, Void> {
             createBatches(messagesToProcess);
 
             // Step 2: send information to spotlight and process responses (after creating new batches)
-            sendBatchesToSpotlight();
+            try {
+                sendBatchesToSpotlight();
+            } catch (SocketTimeoutException e) {
+                logger.warn("Timeout sending batches to Spotlight after processing messages. Backend may still be processing.");
+                // Don't throw - allow Lambda to complete successfully, batches will be retried next invocation
+            } catch (Exception e) {
+                logger.error("Error sending batches to Spotlight", e);
+                // Don't throw - allow Lambda to complete successfully
+            }
 
         } catch (Exception e) {
             logger.error("Could not process messages", e);
